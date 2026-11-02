@@ -83,7 +83,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .group{display:flex;flex-direction:column;gap:8px}
 .ghead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .ghead h2 small{font:500 13px var(--body);color:var(--muted);margin-left:6px}
-.sumtag{font:700 15px var(--display);font-variant-numeric:tabular-nums}
+.sumtag{font:700 15px var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}
 .line{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;grid-template-columns:1fr auto;gap:4px 10px;background:var(--bg);cursor:pointer}
 .line .who{font-weight:600;min-width:0;overflow-wrap:anywhere}
 .line .amt{font:700 15px var(--display);font-variant-numeric:tabular-nums;text-align:right}
@@ -115,7 +115,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .status{font-size:12px;color:var(--muted)}
 /* onglets + planning */
 .stack{display:flex;flex-direction:column;gap:16px}
-.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--sunk);border-radius:14px;padding:4px;gap:4px}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--sunk);border-radius:14px;padding:4px;gap:4px}
 .tabs button{appearance:none;border:0;border-radius:11px;padding:12px 6px;font:700 15px var(--display);background:transparent;color:var(--muted);cursor:pointer}
 .tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .daynav{display:grid;grid-template-columns:42px 1fr 42px;gap:10px;align-items:center}
@@ -156,7 +156,26 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .prow .wide{grid-column:1/-1}
 .prow .tools{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
 .prow .tools button{width:40px;height:40px}
-@media (max-width:380px){.row2{grid-template-columns:1fr}}
+/* charges */
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cats button{appearance:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:11px;padding:10px 4px;font:600 13px var(--body);cursor:pointer}
+.cats button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px;min-width:0}
+.kpi b{display:block;font:800 15px var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi.neg b{color:var(--danger)}.kpi.pos b{color:var(--accent)}
+.bars{display:flex;flex-direction:column;gap:8px}
+.barrow{display:grid;grid-template-columns:96px 1fr auto;gap:10px;align-items:center;font-size:13px}
+.barrow .tr{height:10px;background:var(--sunk);border-radius:6px;overflow:hidden}
+.barrow .fill{height:100%;background:var(--accent);border-radius:6px}
+.barrow b{font-variant-numeric:tabular-nums;font-size:14px}
+.citem{display:grid;grid-template-columns:1fr auto auto;gap:2px 10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.citem .w{font-weight:600;min-width:0;overflow-wrap:anywhere}
+.citem .m{font:700 15px var(--display);font-variant-numeric:tabular-nums}
+.citem .s{grid-column:1/2;color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.citem .del{grid-row:1/3;grid-column:3;border:0;background:transparent;color:var(--danger);width:40px;height:40px;cursor:pointer;display:grid;place-items:center}
+.citem .del svg{width:18px;height:18px}
+@media (max-width:380px){.row2{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.cats{grid-template-columns:1fr 1fr}}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
 </style>
 
@@ -179,6 +198,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
   <div class="tabs" role="tablist" aria-label="Rubriques">
     <button type="button" role="tab" id="tabPlan" aria-selected="true">Planning</button>
     <button type="button" role="tab" id="tabInv" aria-selected="false">Facture</button>
+    <button type="button" role="tab" id="tabChg" aria-selected="false">Charges</button>
   </div>
 
   <div id="viewPlan" class="stack">
@@ -213,6 +233,55 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
         <button class="btn ghost" id="btnImport" type="button">Reporter dans la facture</button>
       </div>
       <p class="status" id="pStatus"></p>
+    </section>
+  </div>
+
+  <div id="viewChg" class="stack" hidden>
+    <section class="card" aria-labelledby="hChgM">
+      <div class="ghead"><h2 id="hChgM">Mes charges</h2><input type="month" id="cMonth" aria-label="Mois" style="width:auto;padding:6px 10px;font-size:14px"></div>
+      <div class="kpis">
+        <div class="kpi"><span class="lbl">Recettes</span><b id="kCA">0,00 €</b></div>
+        <div class="kpi"><span class="lbl">Charges</span><b id="kCh">0,00 €</b></div>
+        <div class="kpi" id="kResBox"><span class="lbl">Reste</span><b id="kRes">0,00 €</b></div>
+      </div>
+      <p class="totline" id="kCAsrc"></p>
+      <div class="bars" id="cBars"></div>
+    </section>
+
+    <section class="card" aria-labelledby="hChgAdd">
+      <h2 id="hChgAdd">Ajouter une dépense</h2>
+      <div class="cats" role="group" aria-label="Catégorie">
+        <button type="button" data-cat="essence" aria-pressed="true">Essence</button>
+        <button type="button" data-cat="amende" aria-pressed="false">Amende</button>
+        <button type="button" data-cat="assurance" aria-pressed="false">Assurance</button>
+        <button type="button" data-cat="pret" aria-pressed="false">Prêt auto</button>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="cAmt">Montant TTC</label><input id="cAmt" inputmode="decimal" placeholder="0,00 €"></div>
+        <div class="field"><label for="cDate">Date</label><input id="cDate" type="date"></div>
+      </div>
+      <div class="field"><label for="cNote" id="cNoteLbl">Détail (facultatif)</label><input id="cNote" placeholder="Ex. : Total Cergy, 42 L"></div>
+      <button class="btn primary" id="cAdd" type="button">Ajouter</button>
+    </section>
+
+    <section class="card" aria-labelledby="hChgFix">
+      <h2 id="hChgFix">Charges fixes chaque mois</h2>
+      <p class="sub">Comptées automatiquement tous les mois. Laissez vide si vous préférez les saisir à chaque paiement.</p>
+      <div class="row2">
+        <div class="field"><label for="fxAss">Assurance RCC (€/mois)</label><input id="fxAss" inputmode="decimal" placeholder="0,00 €"></div>
+        <div class="field"><label for="fxPret">Prêt auto (€/mois)</label><input id="fxPret" inputmode="decimal" placeholder="0,00 €"></div>
+      </div>
+      <div class="field"><label for="fxFrom">À compter du mois de</label><input id="fxFrom" type="month"></div>
+    </section>
+
+    <section class="card group" aria-labelledby="hChgList">
+      <div class="ghead"><h2 id="hChgList">Dépenses du mois<small id="cCount"></small></h2></div>
+      <div class="stack" id="cList" style="gap:8px"></div>
+    </section>
+
+    <section class="card" aria-labelledby="hChgYear">
+      <div class="ghead"><h2 id="hChgYear">Cumul de l’année</h2><span class="sumtag" id="cYearTot"></span></div>
+      <div class="bars" id="cYear"></div>
     </section>
   </div>
 
@@ -341,6 +410,7 @@ const DEFAULT={
     terms:'Pas d’escompte pour paiement anticipé.\nEn cas de retard de paiement : pénalités au taux de refinancement de la BCE majoré de 10 points, et indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce).',days:0,
     iban:'',prefix:'DD-',next:1,cc:''},
   history:[],
+  charges:{fixed:{assurance:'',pret:'',from:''},items:[]},
   planning:{dest:'Rue Jean de la Fontaine, 75016 Paris',
     passengers:[{id:'lena',name:'Léna',place:'Ermont',price:''},{id:'adelaide',name:'Adelaide',place:'Asnières-sur-Seine',price:''},{id:'paul',name:'Paul',place:'Neuilly-sur-Seine',price:''}],
     days:{}}
@@ -352,7 +422,7 @@ let type='ponctuel', editId=null;
 let docRef=null, saveTimer=null, saving=false, again=false;
 function loadLocal(){try{const r=localStorage.getItem('dalisdrive_v1');if(r)return JSON.parse(r)}catch(e){}return null}
 function merge(o){const d=JSON.parse(JSON.stringify(DEFAULT));if(!o)return d;
-  return Object.assign(d,o,{client:Object.assign(d.client,o.client||{}),lists:Object.assign(d.lists,o.lists||{}),settings:Object.assign(d.settings,o.settings||{}),planning:Object.assign(d.planning,o.planning||{})});}
+  return Object.assign(d,o,{client:Object.assign(d.client,o.client||{}),lists:Object.assign(d.lists,o.lists||{}),settings:Object.assign(d.settings,o.settings||{}),planning:Object.assign(d.planning,o.planning||{}),charges:Object.assign(d.charges,o.charges||{},{fixed:Object.assign({assurance:'',pret:'',from:''},(o.charges||{}).fixed||{})})});}
 function persist(){
   try{localStorage.setItem('dalisdrive_v1',JSON.stringify(S))}catch(e){}
   if(!docRef){$('saveStatus').textContent='Enregistré sur cet appareil';return}
@@ -458,6 +528,7 @@ function renderLines(){
 }
 function renderAll(){
   if(typeof renderPlan==='function')renderPlan();
+  if(typeof renderCharges==='function'&&$('viewChg')&&!$('viewChg').hidden)renderCharges();
   $('month').value=S.month;$('invno').value=S.invno||defaultInvno();
   $('cName').value=S.client.name;$('cAddr').value=S.client.addr;$('cSiret').value=S.client.siret||'';$('cPhone').value=S.client.phone||'';
   renderWeeks($('fWeek').value);renderLines();
@@ -628,8 +699,9 @@ let view='plan';try{view=localStorage.getItem('dalisdrive_tab')||'plan'}catch(e)
 
 function setView(v){view=v;try{localStorage.setItem('dalisdrive_tab',v)}catch(e){}
   $('tabPlan').setAttribute('aria-selected',v==='plan');$('tabInv').setAttribute('aria-selected',v==='inv');
+  $('tabChg').setAttribute('aria-selected',v==='chg');$('viewChg').hidden=v!=='chg';if(v==='chg')renderCharges();
   $('viewPlan').hidden=v!=='plan';$('viewInvoice').hidden=v!=='inv';$('bar').hidden=v!=='inv';$('btnHist').hidden=v!=='inv';}
-$('tabPlan').onclick=()=>setView('plan');$('tabInv').onclick=()=>setView('inv');
+$('tabPlan').onclick=()=>setView('plan');$('tabChg').onclick=()=>setView('chg');$('tabInv').onclick=()=>setView('inv');
 
 function rec(k,create){let d=P().days[k];if(!d&&create)d=P().days[k]={a:{},r:{}};if(d){d.a=d.a||{};d.r=d.r||{}}return d}
 function hasData(d){return !!d&&(Object.keys(d.a||{}).length+Object.keys(d.r||{}).length>0||!!(d.note||'').trim())}
@@ -823,6 +895,65 @@ $('btnImport').onclick=()=>{
   renderLines();persist();setView('inv');
   toast(lines.length+' ligne'+(lines.length>1?'s':'')+' de trajets réguliers reportée'+(lines.length>1?'s':''));
 };
+
+/* ---------- charges ---------- */
+const CATS={essence:'Essence',amende:'Amendes',assurance:'Assurance RCC',pret:'Prêt auto'};
+const C=()=>S.charges;
+let cCat='essence',cMonthV=dkey(new Date()).slice(0,7);
+function monthCharges(ym){
+  const items=C().items.filter(x=>x.date&&x.date.startsWith(ym));
+  const by={essence:0,amende:0,assurance:0,pret:0};items.forEach(x=>by[x.cat]=(by[x.cat]||0)+x.amount);
+  if(!C().fixed.from||ym>=C().fixed.from){by.assurance+=num(C().fixed.assurance);by.pret+=num(C().fixed.pret)}
+  return {items,by,total:Object.values(by).reduce((a,b)=>a+b,0)};
+}
+function revenue(ym){
+  if(S.month===ym&&S.lines.length)return {v:S.lines.reduce((a,l)=>a+l.qty*l.price,0),src:'facture en cours'};
+  const h=S.history.find(x=>x.period===monthLabel(ym));if(h)return {v:h.total,src:'facture '+h.no};
+  let v=0;Object.keys(P().days).filter(k=>k.startsWith(ym)).forEach(k=>{const d=P().days[k];P().passengers.forEach(p=>{['a','r'].forEach(l=>{if(d[l]&&d[l][p.id]&&d[l][p.id].s==='ok')v+=num(p.price)})})});
+  return {v,src:v?'trajets pointés × prix par trajet':''};
+}
+function barsHTML(by){const mx=Math.max(1,...Object.values(by));
+  return Object.keys(CATS).map(k=>'<div class="barrow"><span>'+CATS[k]+'</span><div class="tr"><div class="fill" style="width:'+(by[k]/mx*100).toFixed(1)+'%"></div></div><b>'+eur(by[k]||0)+'</b></div>').join('')}
+function renderCharges(){
+  if(!$('cList'))return;
+  $('cMonth').value=cMonthV;if(!$('cDate').value)$('cDate').value=dkey(new Date());
+  if(document.activeElement!==$('fxAss'))$('fxAss').value=C().fixed.assurance===''?'':String(C().fixed.assurance).replace('.',',');
+  if(document.activeElement!==$('fxPret'))$('fxPret').value=C().fixed.pret===''?'':String(C().fixed.pret).replace('.',',');
+  $('fxFrom').value=C().fixed.from||'';
+  document.querySelectorAll('.cats button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cat===cCat));
+  $('cNote').placeholder=cCat==='essence'?'Ex. : Total Cergy, 42 L':cCat==='amende'?'Ex. : stationnement, n° d’avis':cCat==='assurance'?'Ex. : échéance trimestrielle':'Ex. : mensualité';
+  const m=monthCharges(cMonthV),rv=revenue(cMonthV),res=rv.v-m.total;
+  $('kCA').textContent=eur(rv.v);$('kCh').textContent=eur(m.total);$('kRes').textContent=eur(res);
+  $('kResBox').className='kpi '+(res<0?'neg':res>0?'pos':'');
+  $('kCAsrc').textContent=rv.src?'Recettes : '+rv.src+'.':'Aucune recette trouvée pour ce mois (ni facture, ni trajets pointés avec un prix).';
+  $('cBars').innerHTML=barsHTML(m.by);
+  const box=$('cList');box.innerHTML='';
+  const fx=(!C().fixed.from||cMonthV>=C().fixed.from)?[['assurance',C().fixed.assurance],['pret',C().fixed.pret]].filter(x=>num(x[1])>0):[];
+  const list=m.items.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  $('cCount').textContent=list.length?list.length+' saisie'+(list.length>1?'s':''):'';
+  fx.forEach(([k,v])=>{const el=document.createElement('div');el.className='citem';
+    el.innerHTML='<span class="w"></span><span class="m"></span><span class="s">Charge fixe mensuelle</span>';
+    el.querySelector('.w').textContent=CATS[k];el.querySelector('.m').textContent=eur(num(v));box.appendChild(el)});
+  list.forEach(x=>{const el=document.createElement('div');el.className='citem';
+    el.innerHTML='<span class="w"></span><span class="m"></span><button class="del" type="button" aria-label="Supprimer">'+ICON_TRASH+'</button><span class="s"></span>';
+    el.querySelector('.w').textContent=CATS[x.cat]||x.cat;el.querySelector('.m').textContent=eur(x.amount);
+    el.querySelector('.s').textContent=dayShort(x.date)+(x.note?' · '+x.note:'');el.querySelector('.del').dataset.id=x.id;box.appendChild(el)});
+  if(!fx.length&&!list.length)box.innerHTML='<div class="empty-state">Aucune dépense en '+monthLabel(cMonthV)+'. Ajoutez votre premier plein ci-dessus.</div>';
+  const y=cMonthV.slice(0,4),last=+cMonthV.slice(5,7);const yb={essence:0,amende:0,assurance:0,pret:0};
+  for(let i=1;i<=last;i++){const mm=monthCharges(y+'-'+pad(i));Object.keys(yb).forEach(k=>yb[k]+=mm.by[k])}
+  $('hChgYear').textContent='Cumul '+y+' (janvier à '+MONTHS[last-1]+')';
+  $('cYearTot').textContent=eur(Object.values(yb).reduce((a,b)=>a+b,0));
+  $('cYear').innerHTML=barsHTML(yb);
+}
+document.querySelectorAll('.cats button').forEach(b=>b.onclick=()=>{cCat=b.dataset.cat;renderCharges()});
+$('fxFrom').onchange=()=>{C().fixed.from=$('fxFrom').value||'';persist();renderCharges()};
+$('cMonth').onchange=()=>{if($('cMonth').value){cMonthV=$('cMonth').value;renderCharges()}};
+$('cAdd').onclick=()=>{const amt=num($('cAmt').value);if(!amt){toast('Indiquez le montant');$('cAmt').focus();return}
+  const date=$('cDate').value||dkey(new Date());
+  C().items.push({id:uid(),cat:cCat,amount:amt,date,note:$('cNote').value.trim()});
+  $('cAmt').value='';$('cNote').value='';cMonthV=date.slice(0,7);persist();renderCharges();toast(CATS[cCat]+' ajouté : '+eur(amt))};
+$('cList').addEventListener('click',e=>{const b=e.target.closest('.del');if(!b)return;C().items=C().items.filter(x=>x.id!==b.dataset.id);persist();renderCharges();toast('Dépense supprimée')});
+['fxAss','fxPret'].forEach(id=>$(id).addEventListener('change',()=>{const v=$(id).value.trim();C().fixed[id==='fxAss'?'assurance':'pret']=v===''?'':num(v);if(!C().fixed.from)C().fixed.from=dkey(new Date()).slice(0,7);persist();renderCharges()}));
 setView(view);
 
 initStore();
