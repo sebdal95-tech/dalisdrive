@@ -113,6 +113,49 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .hist div{display:flex;justify-content:space-between;gap:8px;font-size:14px;border-bottom:1px solid var(--line);padding-block:6px;font-variant-numeric:tabular-nums}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;z-index:60;max-width:calc(100% - 32px);text-align:center}
 .status{font-size:12px;color:var(--muted)}
+/* onglets + planning */
+.stack{display:flex;flex-direction:column;gap:16px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--sunk);border-radius:14px;padding:4px;gap:4px}
+.tabs button{appearance:none;border:0;border-radius:11px;padding:12px 6px;font:700 15px var(--display);background:transparent;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.daynav{display:grid;grid-template-columns:42px 1fr 42px;gap:10px;align-items:center}
+.daynav .mid{text-align:center;min-width:0}
+.daynav h2{font-size:20px;font-weight:800}
+.daynav .sub2{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:6px;flex-wrap:wrap}
+.daynav input[type=date]{width:auto;padding:6px 10px;font-size:14px}
+.linkbtn{border:0;background:transparent;color:var(--accent);font:600 14px var(--body);cursor:pointer;padding:6px 4px}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{font:600 12px var(--body);padding:4px 10px;border-radius:999px;background:var(--sunk);color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill.ok{background:var(--accent-soft);color:var(--accent)}
+.pill.abs{color:var(--warn)}
+.stops{display:flex;flex-direction:column}
+.stop{display:grid;grid-template-columns:30px 1fr;gap:8px 12px;padding-block:10px;position:relative}
+.stop::before{content:"";position:absolute;left:14px;top:0;bottom:0;width:2px;background:var(--line)}
+.stop:first-child::before{top:24px}.stop:last-child::before{bottom:auto;height:24px}
+.stop .dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center;position:relative;z-index:1;font:700 13px var(--display);color:var(--muted)}
+.stop .dot svg{width:15px;height:15px}
+.stop.dest .dot{border-radius:9px}
+.stop.done .dot{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stop.abs .dot{border-color:var(--warn);color:var(--warn)}
+.stop .info{min-width:0;padding-top:3px}
+.stop .info b{display:block;font-size:16px;overflow-wrap:anywhere}
+.stop .info span{color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.stop .act{grid-column:2;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn.sm{padding:11px 14px;font-size:14px;flex:1 1 auto}
+.btn.warnb{background:transparent;color:var(--warn);border:1px solid var(--line)}
+.stop .act input[type=time]{width:auto;padding:8px 10px;font:600 15px var(--body);font-variant-numeric:tabular-nums}
+.stamp{font:600 13px var(--body);color:var(--accent)}
+.undo{border:0;background:transparent;color:var(--muted);font:600 13px var(--body);text-decoration:underline;cursor:pointer;padding:8px 4px}
+.days{display:flex;flex-direction:column;gap:8px}
+.dayrow{appearance:none;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--bg);cursor:pointer;text-align:left;width:100%;color:var(--ink);font:inherit}
+.dayrow .d{font:700 15px var(--display);font-variant-numeric:tabular-nums;min-width:78px}
+.dayrow .nt{grid-column:1/-1;color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.dayrow.cur{outline:2px solid var(--accent)}
+.totline{font-size:13px;color:var(--muted)}
+.prow{display:grid;grid-template-columns:1fr 1fr;gap:8px;border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--bg)}
+.prow .wide{grid-column:1/-1}
+.prow .tools{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
+.prow .tools button{width:40px;height:40px}
 @media (max-width:380px){.row2{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
 </style>
@@ -125,14 +168,55 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
     <div class="brand">
       <img class="logo" id="logoImg" alt="Logo DALIS’DRIVE">
       <h1>DALIS’DRIVE</h1>
-      <p>Facturation mensuelle des courses</p>
+      <p>Planning et facturation des courses</p>
     </div>
     <div class="btnrow" style="flex:none;gap:8px">
-      <button class="iconbtn" id="btnHist" aria-label="Factures générées"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></button>
+      <button class="iconbtn" id="btnHist" aria-label="Factures générées" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></button>
       <button class="iconbtn" id="btnSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     </div>
   </header>
 
+  <div class="tabs" role="tablist" aria-label="Rubriques">
+    <button type="button" role="tab" id="tabPlan" aria-selected="true">Planning</button>
+    <button type="button" role="tab" id="tabInv" aria-selected="false">Facture</button>
+  </div>
+
+  <div id="viewPlan" class="stack">
+    <section class="card" aria-labelledby="pTitle">
+      <div class="daynav">
+        <button class="iconbtn" id="pPrev" type="button" aria-label="Jour précédent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div class="mid">
+          <h2 id="pTitle">Aujourd’hui</h2>
+          <div class="sub2"><input type="date" id="pDate" aria-label="Choisir la date"><button class="linkbtn" id="pToday" type="button">Revenir à aujourd’hui</button><span class="pill ok" id="pIsToday">Aujourd’hui</span></div>
+        </div>
+        <button class="iconbtn" id="pNext" type="button" aria-label="Jour suivant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+      <div class="seg" role="group" aria-label="Sens du trajet">
+        <button type="button" id="legA" aria-pressed="true">Aller</button>
+        <button type="button" id="legR" aria-pressed="false">Retour</button>
+      </div>
+      <div class="pills" id="pProg"></div>
+      <div class="stops" id="pStops"></div>
+      <div class="field"><label for="pNote">Remarque du jour (facultatif)</label><input id="pNote" placeholder="Ex. : retard, changement d’horaire…"></div>
+      <div class="btnrow">
+        <button class="btn ghost" id="btnRelD" type="button">PDF du jour</button>
+        <button class="btn ghost" id="btnPlanEdit" type="button">Modifier le planning</button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="hHistP">
+      <div class="ghead"><h2 id="hHistP">Historique</h2><input type="month" id="pMonth" aria-label="Mois de l’historique" style="width:auto;padding:6px 10px;font-size:14px"></div>
+      <p class="totline" id="pTot"></p>
+      <div class="days" id="pDays"></div>
+      <div class="btnrow">
+        <button class="btn primary" id="btnRelM" type="button">PDF du mois</button>
+        <button class="btn ghost" id="btnImport" type="button">Reporter dans la facture</button>
+      </div>
+      <p class="status" id="pStatus"></p>
+    </section>
+  </div>
+
+  <div id="viewInvoice" class="stack" hidden>
   <div class="meta">
     <label class="chip"><span class="lbl">Mois facturé</span><input type="month" id="month"></label>
     <label class="chip"><span class="lbl">Facture n°</span><input id="invno" inputmode="text"></label>
@@ -175,10 +259,11 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
     <div class="ghead"><h2 id="hReg">Trajets réguliers<small id="nReg"></small></h2><span class="sumtag" id="sReg">0,00 €</span></div>
     <div id="lReg"></div>
   </section>
+  </div>
   <p class="status" id="saveStatus">Chargement…</p>
 </div>
 
-<div class="bar"><div class="in">
+<div class="bar" id="bar" hidden><div class="in">
   <div class="tot"><span class="lbl">Total TTC du mois</span><b id="grand">0,00 €</b></div>
   <button class="btn primary" id="btnInvoice" type="button">Facture PDF</button>
 </div></div>
@@ -217,6 +302,15 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
   <button class="btn primary" data-close type="button">Terminé</button>
 </div></div>
 
+<div class="sheet-bg" id="shPlan" hidden><div class="sheet" role="dialog" aria-labelledby="hPlanEd">
+  <div class="shead"><h2 id="hPlanEd">Modifier le planning</h2><button class="iconbtn" data-close aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <p class="sub" style="margin:0">Ordre de prise en charge à l’aller. Le retour se fait dans l’ordre inverse.</p>
+  <div class="field"><label for="pDest">Destination (arrivée de l’aller, départ du retour)</label><input id="pDest"></div>
+  <div class="stack" id="pList" style="gap:10px"></div>
+  <button class="btn ghost" id="pAdd" type="button">Ajouter un enfant</button>
+  <button class="btn primary" data-close type="button">Terminé</button>
+</div></div>
+
 <div class="sheet-bg" id="shHist" hidden><div class="sheet" role="dialog" aria-labelledby="hHist">
   <div class="shead"><h2 id="hHist">Factures générées</h2><button class="iconbtn" data-close aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="hist" id="histList"></div>
@@ -246,7 +340,10 @@ const DEFAULT={
     mention:'TVA non applicable, art. 293 B du CGI',
     terms:'Pas d’escompte pour paiement anticipé.\nEn cas de retard de paiement : pénalités au taux de refinancement de la BCE majoré de 10 points, et indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce).',days:0,
     iban:'',prefix:'DD-',next:1,cc:''},
-  history:[]
+  history:[],
+  planning:{dest:'Rue Jean de la Fontaine, 75016 Paris',
+    passengers:[{id:'lena',name:'Léna',place:'Ermont',price:''},{id:'adelaide',name:'Adelaide',place:'Asnières-sur-Seine',price:''},{id:'paul',name:'Paul',place:'Neuilly-sur-Seine',price:''}],
+    days:{}}
 };
 let S=JSON.parse(JSON.stringify(DEFAULT));
 let type='ponctuel', editId=null;
@@ -255,7 +352,7 @@ let type='ponctuel', editId=null;
 let docRef=null, saveTimer=null, saving=false, again=false;
 function loadLocal(){try{const r=localStorage.getItem('dalisdrive_v1');if(r)return JSON.parse(r)}catch(e){}return null}
 function merge(o){const d=JSON.parse(JSON.stringify(DEFAULT));if(!o)return d;
-  return Object.assign(d,o,{client:Object.assign(d.client,o.client||{}),lists:Object.assign(d.lists,o.lists||{}),settings:Object.assign(d.settings,o.settings||{})});}
+  return Object.assign(d,o,{client:Object.assign(d.client,o.client||{}),lists:Object.assign(d.lists,o.lists||{}),settings:Object.assign(d.settings,o.settings||{}),planning:Object.assign(d.planning,o.planning||{})});}
 function persist(){
   try{localStorage.setItem('dalisdrive_v1',JSON.stringify(S))}catch(e){}
   if(!docRef){$('saveStatus').textContent='Enregistré sur cet appareil';return}
@@ -360,6 +457,7 @@ function renderLines(){
   $('grand').textContent=eur(S.lines.reduce((a,l)=>a+l.qty*l.price,0));
 }
 function renderAll(){
+  if(typeof renderPlan==='function')renderPlan();
   $('month').value=S.month;$('invno').value=S.invno||defaultInvno();
   $('cName').value=S.client.name;$('cAddr').value=S.client.addr;$('cSiret').value=S.client.siret||'';$('cPhone').value=S.client.phone||'';
   renderWeeks($('fWeek').value);renderLines();
@@ -406,7 +504,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.classList&&
 /* ---------- feuilles ---------- */
 function openSheet(id){$(id).hidden=false}
 document.querySelectorAll('.sheet-bg').forEach(bg=>{
-  bg.addEventListener('click',e=>{if(e.target===bg||e.target.closest('[data-close]')){bg.hidden=true;if(bg.id==='shSettings')saveSettings()}});
+  bg.addEventListener('click',e=>{if(e.target===bg||e.target.closest('[data-close]')){bg.hidden=true;if(bg.id==='shSettings')saveSettings();if(bg.id==='shPlan'){renderPlan();persist()}}});
 });
 const SETF={sName:'name',sOwner:'owner',sAddr:'addr',sSiret:'siret',sPhone:'phone',sMention:'mention',sTerms:'terms',sIban:'iban',sPrefix:'prefix',sNext:'next',sDays:'days'};
 $('btnSettings').onclick=()=>{for(const k in SETF)$(k).value=S.settings[SETF[k]]??'';openSheet('shSettings')};
@@ -511,6 +609,221 @@ $('btnNextMonth').onclick=()=>{
   if(!S.invno||S.invno===defaultInvno())S.settings.next=(S.settings.next||1)+1;S.month=d.getFullYear()+'-'+pad(d.getMonth()+1);S.lines=[];S.invno='';
   $('shInvoice').hidden=true;resetForm();renderAll();persist();toast('Nouveau mois : '+monthLabel(S.month));
 };
+
+/* ---------- planning & pointage ---------- */
+const JOURS=['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+const ICO_FLAG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4h11l-2 4 2 4H5"/></svg>';
+const ICO_OK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
+const ICO_UP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 15l6-6 6 6"/></svg>';
+function dkey(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function pkey(k){const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d)}
+function cap1(t){return t.charAt(0).toUpperCase()+t.slice(1)}
+function dayLong(k){const d=pkey(k);return cap1(JOURS[d.getDay()])+' '+d.getDate()+' '+MONTHS[d.getMonth()]}
+function dayShort(k){const d=pkey(k);return cap1(JOURS[d.getDay()].slice(0,3))+'. '+d2(d)}
+function nowHM(){const n=new Date();return pad(n.getHours())+':'+pad(n.getMinutes())}
+const P=()=>S.planning;
+const act=()=>P().passengers.filter(p=>!p.off);
+let pDate=dkey(new Date()), pLeg=new Date().getHours()<12?'a':'r', pMonthV=pDate.slice(0,7);
+let view='plan';try{view=localStorage.getItem('dalisdrive_tab')||'plan'}catch(e){}
+
+function setView(v){view=v;try{localStorage.setItem('dalisdrive_tab',v)}catch(e){}
+  $('tabPlan').setAttribute('aria-selected',v==='plan');$('tabInv').setAttribute('aria-selected',v==='inv');
+  $('viewPlan').hidden=v!=='plan';$('viewInvoice').hidden=v!=='inv';$('bar').hidden=v!=='inv';$('btnHist').hidden=v!=='inv';}
+$('tabPlan').onclick=()=>setView('plan');$('tabInv').onclick=()=>setView('inv');
+
+function rec(k,create){let d=P().days[k];if(!d&&create)d=P().days[k]={a:{},r:{}};if(d){d.a=d.a||{};d.r=d.r||{}}return d}
+function hasData(d){return !!d&&(Object.keys(d.a||{}).length+Object.keys(d.r||{}).length>0||!!(d.note||'').trim())}
+function steps(leg){const ps=act(),dest={id:'_dest',dest:true};return leg==='a'?[...ps,dest]:[dest,...ps.slice().reverse()]}
+function legStats(d,leg){const r=(d&&d[leg])||{};let ok=0,abs=0;act().forEach(p=>{const v=r[p.id];if(v&&v.s==='ok')ok++;else if(v&&v.s==='abs')abs++});
+  return {ok,abs,n:act().length,dest:r._dest&&r._dest.s==='ok'?r._dest.t:''}}
+function legPill(d,leg){const st=legStats(d,leg);const lab=leg==='a'?'Aller':'Retour';
+  if(!st.ok&&!st.abs&&!st.dest)return '';
+  const done=st.ok+st.abs>=st.n;let t=lab+' '+st.ok+'/'+st.n;if(st.abs)t+=' · '+st.abs+' abs.';if(st.dest)t+=' · '+(leg==='a'?'arr. ':'dép. ')+st.dest;
+  return '<span class="pill '+(done?'ok':'')+'">'+t+'</span>'}
+
+function renderPlan(){
+  if(!$('pStops'))return;
+  $('pTitle').textContent=dayLong(pDate);$('pIsToday').hidden=pDate!==dkey(new Date());
+  $('pDate').value=pDate;$('pToday').hidden=pDate===dkey(new Date());
+  $('legA').setAttribute('aria-pressed',pLeg==='a');$('legR').setAttribute('aria-pressed',pLeg==='r');
+  const d=rec(pDate,false);
+  $('pProg').innerHTML=(legPill(d,'a')||'<span class="pill">Aller 0/'+act().length+'</span>')+(legPill(d,'r')||'<span class="pill">Retour 0/'+act().length+'</span>');
+  $('pNote').value=(d&&d.note)||'';
+  const box=$('pStops');box.innerHTML='';
+  const r=(d&&d[pLeg])||{};let i=0;
+  if(!act().length){box.innerHTML='<div class="empty-state">Aucun enfant dans le planning. Touchez « Modifier le planning » pour en ajouter.</div>'}
+  steps(pLeg).forEach(stp=>{
+    const v=r[stp.id];const el=document.createElement('div');
+    el.className='stop'+(stp.dest?' dest':'')+(v&&v.s==='ok'?' done':'')+(v&&v.s==='abs'?' abs':'');
+    const dot=document.createElement('div');dot.className='dot';
+    dot.innerHTML=v&&v.s==='ok'?ICO_OK:stp.dest?ICO_FLAG:String(++i);if(!stp.dest&&v&&v.s==='ok')++i;
+    const info=document.createElement('div');info.className='info';
+    const b=document.createElement('b'),sp=document.createElement('span');
+    if(stp.dest){b.textContent=pLeg==='a'?'Arrivée':'Départ';sp.textContent=P().dest}
+    else{b.textContent=stp.name||'Sans nom';sp.textContent=(stp.place||'—')+' · '+(pLeg==='a'?'prise en charge':'dépose')}
+    info.append(b,sp);
+    const a=document.createElement('div');a.className='act';
+    if(!v){
+      const ok=document.createElement('button');ok.type='button';ok.className='btn primary sm';ok.dataset.act='ok';ok.dataset.id=stp.id;
+      ok.textContent=stp.dest?(pLeg==='a'?'Valider l’arrivée':'Valider le départ'):(pLeg==='a'?'Pris en charge':'Déposé');a.appendChild(ok);
+      if(!stp.dest){const ab=document.createElement('button');ab.type='button';ab.className='btn warnb sm';ab.style.flex='0 0 auto';ab.dataset.act='abs';ab.dataset.id=stp.id;ab.textContent='Absent';a.appendChild(ab)}
+    }else{
+      if(v.s==='ok'){const lab=document.createElement('span');lab.className='stamp';lab.textContent=stp.dest?(pLeg==='a'?'Arrivé à':'Parti à'):(pLeg==='a'?'Pris en charge à':'Déposé à');
+        const t=document.createElement('input');t.type='time';t.value=v.t||'';t.dataset.id=stp.id;t.setAttribute('aria-label','Heure');a.append(lab,t)}
+      else{const lab=document.createElement('span');lab.className='pill abs';lab.textContent='Absent';a.appendChild(lab)}
+      const u=document.createElement('button');u.type='button';u.className='undo';u.dataset.act='undo';u.dataset.id=stp.id;u.textContent='Annuler';a.appendChild(u);
+    }
+    el.append(dot,info,a);box.appendChild(el);
+  });
+  renderDays();
+}
+function renderDays(){
+  $('pMonth').value=pMonthV;
+  const keys=Object.keys(P().days).filter(k=>k.startsWith(pMonthV)&&hasData(P().days[k])).sort().reverse();
+  const box=$('pDays');box.innerHTML='';
+  let ok=0,abs=0;keys.forEach(k=>{['a','r'].forEach(l=>{const st=legStats(P().days[k],l);ok+=st.ok;abs+=st.abs})});
+  $('pTot').textContent=keys.length?keys.length+' jour'+(keys.length>1?'s':'')+' pointé'+(keys.length>1?'s':'')+' · '+ok+' trajet'+(ok>1?'s':'')+' effectué'+(ok>1?'s':'')+(abs?' · '+abs+' absence'+(abs>1?'s':''):''):'';
+  if(!keys.length){box.innerHTML='<div class="empty-state">Aucun pointage en '+monthLabel(pMonthV)+'. Validez un trajet ci-dessus : la journée apparaîtra ici.</div>';return}
+  keys.forEach(k=>{const d=P().days[k];const b=document.createElement('button');b.type='button';b.className='dayrow'+(k===pDate?' cur':'');b.dataset.k=k;
+    const dd=document.createElement('span');dd.className='d';dd.textContent=dayShort(k);
+    const pl=document.createElement('span');pl.className='pills';pl.innerHTML=legPill(d,'a')+legPill(d,'r');
+    b.append(dd,pl);
+    if((d.note||'').trim()){const n=document.createElement('span');n.className='nt';n.textContent=d.note;b.appendChild(n)}
+    box.appendChild(b)});
+}
+$('pStops').addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const d=rec(pDate,true),r=d[pLeg],id=b.dataset.id;
+  if(b.dataset.act==='ok')r[id]={s:'ok',t:nowHM()};
+  else if(b.dataset.act==='abs')r[id]={s:'abs'};
+  else delete r[id];
+  renderPlan();persist();
+  if(b.dataset.act==='ok'){const st=legStats(d,pLeg);if(st.ok+st.abs>=st.n&&r._dest&&r._dest.s==='ok')toast((pLeg==='a'?'Aller':'Retour')+' terminé')}
+});
+$('pStops').addEventListener('change',e=>{const t=e.target;if(t.type!=='time')return;const d=rec(pDate,true);const v=d[pLeg][t.dataset.id];if(v&&t.value){v.t=t.value;persist();renderDays()}});
+$('pNote').addEventListener('change',()=>{const d=rec(pDate,true);d.note=$('pNote').value.trim();persist();renderDays()});
+function goDay(k){pDate=k;pMonthV=k.slice(0,7);renderPlan()}
+function shift(n){const d=pkey(pDate);d.setDate(d.getDate()+n);goDay(dkey(d))}
+$('pPrev').onclick=()=>shift(-1);$('pNext').onclick=()=>shift(1);
+$('pToday').onclick=()=>goDay(dkey(new Date()));
+$('pDate').onchange=()=>{if($('pDate').value)goDay($('pDate').value)};
+$('legA').onclick=()=>{pLeg='a';renderPlan()};$('legR').onclick=()=>{pLeg='r';renderPlan()};
+$('pMonth').onchange=()=>{if($('pMonth').value){pMonthV=$('pMonth').value;renderDays()}};
+$('pDays').addEventListener('click',e=>{const b=e.target.closest('.dayrow');if(!b)return;goDay(b.dataset.k);$('pTitle').scrollIntoView({behavior:'smooth',block:'center'})});
+
+/* édition du planning */
+function renderPList(){
+  $('pDest').value=P().dest;const box=$('pList');box.innerHTML='';
+  const L=act();
+  if(!L.length)box.innerHTML='<div class="empty-state">Aucun enfant. Ajoutez-en un.</div>';
+  L.forEach((p,idx)=>{
+    const row=document.createElement('div');row.className='prow';row.dataset.id=p.id;
+    row.innerHTML='<div class="field"><label>Prénom</label><input data-f="name"></div><div class="field"><label>Ville / adresse</label><input data-f="place"></div>'+
+      '<div class="field wide"><label>Prix TTC par trajet (pour la facture)</label><input data-f="price" inputmode="decimal" placeholder="0,00 €"></div>'+
+      '<div class="tools"><button type="button" class="iconbtn" data-mv="-1" aria-label="Monter"'+(idx?'':' disabled')+'>'+ICO_UP+'</button><button type="button" class="iconbtn" data-mv="1" aria-label="Descendre"'+(idx<L.length-1?'':' disabled')+' style="transform:rotate(180deg)">'+ICO_UP+'</button><button type="button" class="iconbtn" data-rm aria-label="Retirer" style="color:var(--danger)">'+ICON_TRASH+'</button></div>';
+    row.querySelector('[data-f=name]').value=p.name||'';row.querySelector('[data-f=place]').value=p.place||'';row.querySelector('[data-f=price]').value=p.price===''||p.price==null?'':String(p.price).replace('.',',');
+    box.appendChild(row)});
+}
+$('btnPlanEdit').onclick=()=>{renderPList();openSheet('shPlan')};
+$('pDest').addEventListener('input',()=>{P().dest=$('pDest').value.trim()});
+$('pList').addEventListener('input',e=>{const f=e.target.dataset.f;if(!f)return;const p=P().passengers.find(x=>x.id===e.target.closest('.prow').dataset.id);if(!p)return;
+  p[f]=f==='price'?(e.target.value.trim()===''?'':num(e.target.value)):e.target.value.trim()});
+$('pList').addEventListener('click',e=>{const row=e.target.closest('.prow');if(!row)return;const L=P().passengers,i=L.findIndex(x=>x.id===row.dataset.id);
+  const mv=e.target.closest('[data-mv]');
+  if(mv){const a=act(),ai=a.findIndex(x=>x.id===row.dataset.id),bi=ai+ +mv.dataset.mv;if(bi<0||bi>=a.length)return;
+    const j=L.indexOf(a[bi]);[L[i],L[j]]=[L[j],L[i]];renderPList();return}
+  if(e.target.closest('[data-rm]')){L[i].off=true;renderPList();toast('Retiré du planning (son historique est conservé)')}});
+$('pAdd').onclick=()=>{P().passengers.push({id:uid(),name:'',place:'',price:''});renderPList();const ins=$('pList').querySelectorAll('[data-f=name]');ins[ins.length-1].focus()};
+
+/* PDF relevé de trajets */
+function relevePDF(keys,periodTxt){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4'});
+  const st=S.settings,W=210,M=14;const ink=[23,33,43],acc=[13,107,94],mut=[93,102,112],warn=[164,66,26];
+  const clean=s=>String(s||'').replace(/[’‘]/g,"'").replace(/[  ]/g,' ').replace(/[–—]/g,'-');
+  const used=new Set();keys.forEach(k=>{const d=P().days[k];['a','r'].forEach(l=>Object.keys(d[l]||{}).forEach(id=>used.add(id)))});
+  const ps=P().passengers.filter(p=>!p.off||used.has(p.id));
+  doc.setFillColor(...acc);doc.rect(0,0,W,4,'F');
+  const lw=40,lh=lw*LOGO_R;try{doc.addImage(LOGO,'JPEG',M,8,lw,lh)}catch(e){}
+  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(...ink);doc.text(clean(st.name),M,8+lh+6);
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...mut);
+  let y=8+lh+11;[st.owner,String(st.addr).replace(/\n/g,', '),st.siret?'SIRET : '+st.siret:''].filter(Boolean).forEach(t=>{doc.text(clean(t),M,y);y+=4.3});
+  doc.setFont('helvetica','bold');doc.setFontSize(18);doc.setTextColor(...acc);doc.text('RELEVÉ DE TRAJETS',W-M,18,{align:'right'});
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(...ink);
+  doc.text(clean(periodTxt),W-M,25,{align:'right'});
+  if(S.client.name)doc.text(clean('Client : '+S.client.name),W-M,30.5,{align:'right'});
+  doc.setFontSize(8.5);doc.setTextColor(...mut);
+  doc.text(clean('Aller : '+act().map(p=>p.name+' ('+p.place+')').join(' > ')+' > '+P().dest),W-M,36,{align:'right',maxWidth:88});
+  const now=new Date();doc.text('Édité le '+pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear()+' à '+nowHM(),W-M,48,{align:'right'});
+  let ty=Math.max(y,53)+4;
+  const body=[];const tot={};ps.forEach(p=>tot[p.id]={a:0,r:0,abs:0});
+  keys.slice().sort().forEach(k=>{const d=P().days[k];
+    ['a','r'].forEach(l=>{const r=d[l]||{};if(!Object.keys(r).length)return;
+      const row=[dayShort(k),l==='a'?'Aller':'Retour'];
+      ps.forEach(p=>{const v=r[p.id];if(v&&v.s==='ok'){row.push(v.t||'Fait');tot[p.id][l]++}else if(v&&v.s==='abs'){row.push('Absent');tot[p.id].abs++}else row.push('-')});
+      row.push(r._dest&&r._dest.s==='ok'?(l==='a'?'Arr. ':'Dép. ')+(r._dest.t||''):'-');body.push(row)})});
+  doc.autoTable({startY:ty,margin:{left:M,right:M},
+    head:[['Date','Sens',...ps.map(p=>clean(p.name)),'Destination']],
+    body:body.length?body:[[{content:'Aucun pointage sur cette période.',colSpan:ps.length+3,styles:{halign:'center',textColor:mut}}]],
+    styles:{font:'helvetica',fontSize:8.6,cellPadding:2,textColor:ink,lineColor:[214,217,210],lineWidth:.15,valign:'middle',halign:'center'},
+    headStyles:{fillColor:ink,textColor:255,fontStyle:'bold'},alternateRowStyles:{fillColor:[248,249,247]},
+    columnStyles:{0:{halign:'left',cellWidth:24},1:{halign:'left',cellWidth:17}},
+    didParseCell:h=>{if(h.section==='body'&&h.cell.raw==='Absent'){h.cell.styles.textColor=warn;h.cell.styles.fontStyle='bold'}}});
+  ty=doc.lastAutoTable.finalY+9;
+  if(ty>235){doc.addPage();ty=20}
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(...acc);doc.text('Récapitulatif',M,ty);
+  const priced=ps.some(p=>num(p.price)>0);let gt=0,gn=0;
+  const sb=ps.map(p=>{const t=tot[p.id],n=t.a+t.r;gn+=n;const r=[clean(p.name),clean(p.place),String(t.a),String(t.r),String(t.abs),String(n)];
+    if(priced){const pr=num(p.price);gt+=n*pr;r.push(pr?clean(eur(pr)):'-',pr?clean(eur(n*pr)):'-')}return r});
+  const foot=['Total','','','','',String(gn)];if(priced)foot.push('',clean(eur(gt)));
+  doc.autoTable({startY:ty+2.5,margin:{left:M,right:M},
+    head:[['Enfant','Ville','Allers','Retours','Absences','Trajets'].concat(priced?['Prix/trajet','Montant TTC']:[])],
+    body:sb,foot:[foot],
+    styles:{font:'helvetica',fontSize:8.8,cellPadding:2,textColor:ink,lineColor:[214,217,210],lineWidth:.15,halign:'center'},
+    headStyles:{fillColor:acc,textColor:255,fontStyle:'bold'},footStyles:{fillColor:[232,234,229],textColor:ink,fontStyle:'bold'},
+    columnStyles:{0:{halign:'left'},1:{halign:'left'}}});
+  ty=doc.lastAutoTable.finalY+8;
+  const notes=keys.slice().sort().filter(k=>(P().days[k].note||'').trim());
+  if(notes.length){if(ty>260){doc.addPage();ty=20}
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(...ink);doc.text('Remarques',M,ty);ty+=5;
+    doc.setFont('helvetica','normal');doc.setFontSize(8.8);doc.setTextColor(...mut);
+    notes.forEach(k=>{doc.splitTextToSize(clean(dayShort(k)+' : '+P().days[k].note),W-2*M).forEach(t=>{if(ty>280){doc.addPage();ty=20}doc.text(t,M,ty);ty+=4.4})})}
+  const pages=doc.getNumberOfPages();for(let i=1;i<=pages;i++){doc.setPage(i);doc.setFontSize(7.5);doc.setTextColor(...mut);
+    doc.text(clean(st.name+' - '+st.owner+' - Relevé de trajets - page '+i+'/'+pages),W/2,289,{align:'center'})}
+  return doc;
+}
+async function savePDF(doc,name,statusEl){
+  try{const dl=await cap('downloads');
+    if(!dl)doc.save(name);else await dl.save({filename:name,data:new Blob([doc.output('arraybuffer')],{type:'application/pdf'})});
+    statusEl.textContent='PDF enregistré : '+name;
+  }catch(e){statusEl.textContent=e&&e.code==='declined'?'Enregistrement annulé.':'Impossible d’enregistrer le PDF ('+((e&&e.message)||'erreur')+').'}
+}
+$('btnRelD').onclick=()=>{const d=P().days[pDate];if(!hasData(d)){toast('Aucun pointage ce jour-là');return}
+  savePDF(relevePDF([pDate],dayLong(pDate)+' '+pDate.slice(0,4)),'Releve_'+pDate+'_DalisDrive.pdf',$('pStatus'))};
+$('btnRelM').onclick=()=>{const keys=Object.keys(P().days).filter(k=>k.startsWith(pMonthV)&&hasData(P().days[k]));
+  if(!keys.length){toast('Aucun pointage en '+monthLabel(pMonthV));return}
+  savePDF(relevePDF(keys,'Mois de '+monthLabel(pMonthV)),'Releve_'+pMonthV+'_DalisDrive.pdf',$('pStatus'))};
+
+/* report dans la facture */
+$('btnImport').onclick=()=>{
+  if(S.month!==pMonthV){$('pStatus').textContent='La facture en cours porte sur '+monthLabel(S.month)+'. Dans l’onglet Facture, choisissez '+monthLabel(pMonthV)+' comme mois facturé, puis revenez ici.';return}
+  const keys=Object.keys(P().days).filter(k=>k.startsWith(pMonthV));
+  const weeks=weeksOf(pMonthV);const lines=[];const noPrice=new Set();
+  P().passengers.forEach(p=>{
+    weeks.forEach(w=>{let a=0,r=0;
+      keys.forEach(k=>{if(!w.startsWith('S'+isoWeek(pkey(k))+' ·'))return;const d=P().days[k];
+        if(d.a&&d.a[p.id]&&d.a[p.id].s==='ok')a++;if(d.r&&d.r[p.id]&&d.r[p.id].s==='ok')r++});
+      const pr=num(p.price);if((a||r)&&!pr)noPrice.add(p.name||'?');
+      if(a)lines.push({id:uid(),src:'planning',type:'regulier',week:w,name:p.name,from:p.place,to:P().dest,qty:a,price:pr});
+      if(r)lines.push({id:uid(),src:'planning',type:'regulier',week:w,name:p.name,from:P().dest,to:p.place,qty:r,price:pr});
+    })});
+  if(noPrice.size){$('pStatus').textContent='Indiquez d’abord le prix par trajet de : '+[...noPrice].join(', ')+' (bouton « Modifier le planning »).';return}
+  if(!lines.length){$('pStatus').textContent='Aucun trajet effectué à reporter en '+monthLabel(pMonthV)+'.';return}
+  S.lines=S.lines.filter(l=>l.src!=='planning').concat(lines);
+  lines.forEach(l=>remember('names',l.name));
+  renderLines();persist();setView('inv');
+  toast(lines.length+' ligne'+(lines.length>1?'s':'')+' de trajets réguliers reportée'+(lines.length>1?'s':''));
+};
+setView(view);
 
 initStore();
 })();
