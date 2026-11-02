@@ -175,6 +175,8 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .citem .s{grid-column:1/2;color:var(--muted);font-size:12px;overflow-wrap:anywhere}
 .citem .del{grid-row:1/3;grid-column:3;border:0;background:transparent;color:var(--danger);width:40px;height:40px;cursor:pointer;display:grid;place-items:center}
 .citem .del svg{width:18px;height:18px}
+.citem.inc .m{color:var(--accent)}
+.cats.c3{grid-template-columns:repeat(4,1fr)}
 @media (max-width:380px){.row2{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.cats{grid-template-columns:1fr 1fr}}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
 </style>
@@ -248,6 +250,23 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
       <div class="bars" id="cBars"></div>
     </section>
 
+    <section class="card" aria-labelledby="hCaAdd">
+      <h2 id="hCaAdd">CA applis</h2>
+      <p class="sub">Gains encaissés via les plateformes. Ils comptent dans vos recettes ici, mais n’apparaissent jamais sur la facture Kid Services.</p>
+      <div class="cats" role="group" aria-label="Plateforme" id="caSrc">
+        <button type="button" data-src="uber" aria-pressed="true">Uber</button>
+        <button type="button" data-src="bolt" aria-pressed="false">Bolt</button>
+        <button type="button" data-src="heetch" aria-pressed="false">Heetch</button>
+        <button type="button" data-src="autre" aria-pressed="false">Autre</button>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="caAmt">Montant encaissé</label><input id="caAmt" inputmode="decimal" placeholder="0,00 €"></div>
+        <div class="field"><label for="caDate">Date</label><input id="caDate" type="date"></div>
+      </div>
+      <div class="field"><label for="caNote">Détail (facultatif)</label><input id="caNote" placeholder="Ex. : virement hebdo, 23 courses"></div>
+      <button class="btn primary" id="caAdd" type="button">Ajouter au CA</button>
+    </section>
+
     <section class="card" aria-labelledby="hChgAdd">
       <h2 id="hChgAdd">Ajouter une dépense</h2>
       <div class="cats" role="group" aria-label="Catégorie">
@@ -275,7 +294,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
     </section>
 
     <section class="card group" aria-labelledby="hChgList">
-      <div class="ghead"><h2 id="hChgList">Dépenses du mois<small id="cCount"></small></h2></div>
+      <div class="ghead"><h2 id="hChgList">Mouvements du mois<small id="cCount"></small></h2></div>
       <div class="stack" id="cList" style="gap:8px"></div>
     </section>
 
@@ -410,7 +429,7 @@ const DEFAULT={
     terms:'Pas d’escompte pour paiement anticipé.\nEn cas de retard de paiement : pénalités au taux de refinancement de la BCE majoré de 10 points, et indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce).',days:0,
     iban:'',prefix:'DD-',next:1,cc:''},
   history:[],
-  charges:{fixed:{assurance:'',pret:'',from:''},items:[]},
+  charges:{fixed:{assurance:'',pret:'',from:''},items:[],income:[]},
   planning:{dest:'Rue Jean de la Fontaine, 75016 Paris',
     passengers:[{id:'lena',name:'Léna',place:'Ermont',price:''},{id:'adelaide',name:'Adelaide',place:'Asnières-sur-Seine',price:''},{id:'paul',name:'Paul',place:'Neuilly-sur-Seine',price:''}],
     days:{}}
@@ -898,6 +917,9 @@ $('btnImport').onclick=()=>{
 
 /* ---------- charges ---------- */
 const CATS={essence:'Essence',amende:'Amendes',assurance:'Assurance RCC',pret:'Prêt auto'};
+const SRCS={uber:'Uber',bolt:'Bolt',heetch:'Heetch',autre:'Autre appli'};
+let caSrc='uber';
+function appsCA(ym){return (C().income||[]).filter(x=>x.date&&x.date.startsWith(ym))}
 const C=()=>S.charges;
 let cCat='essence',cMonthV=dkey(new Date()).slice(0,7);
 function monthCharges(ym){
@@ -922,15 +944,21 @@ function renderCharges(){
   $('fxFrom').value=C().fixed.from||'';
   document.querySelectorAll('.cats button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cat===cCat));
   $('cNote').placeholder=cCat==='essence'?'Ex. : Total Cergy, 42 L':cCat==='amende'?'Ex. : stationnement, n° d’avis':cCat==='assurance'?'Ex. : échéance trimestrielle':'Ex. : mensualité';
-  const m=monthCharges(cMonthV),rv=revenue(cMonthV),res=rv.v-m.total;
-  $('kCA').textContent=eur(rv.v);$('kCh').textContent=eur(m.total);$('kRes').textContent=eur(res);
+  const m=monthCharges(cMonthV),rv=revenue(cMonthV),inc=appsCA(cMonthV),apps=inc.reduce((a,x)=>a+x.amount,0),rec=rv.v+apps,res=rec-m.total;
+  $('kCA').textContent=eur(rec);$('kCh').textContent=eur(m.total);$('kRes').textContent=eur(res);
   $('kResBox').className='kpi '+(res<0?'neg':res>0?'pos':'');
-  $('kCAsrc').textContent=rv.src?'Recettes : '+rv.src+'.':'Aucune recette trouvée pour ce mois (ni facture, ni trajets pointés avec un prix).';
+  $('kCAsrc').textContent='Recettes : Kid Services '+eur(rv.v)+(rv.src?' ('+rv.src+')':'')+' + CA applis '+eur(apps)+'.';
+  if(!$('caDate').value)$('caDate').value=dkey(new Date());
+  document.querySelectorAll('#caSrc button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.src===caSrc));
   $('cBars').innerHTML=barsHTML(m.by);
   const box=$('cList');box.innerHTML='';
   const fx=(!C().fixed.from||cMonthV>=C().fixed.from)?[['assurance',C().fixed.assurance],['pret',C().fixed.pret]].filter(x=>num(x[1])>0):[];
   const list=m.items.slice().sort((a,b)=>b.date.localeCompare(a.date));
-  $('cCount').textContent=list.length?list.length+' saisie'+(list.length>1?'s':''):'';
+  const nIt=list.length+inc.length;$('cCount').textContent=nIt?nIt+' saisie'+(nIt>1?'s':''):'';
+  inc.slice().sort((a,b)=>b.date.localeCompare(a.date)).forEach(x=>{const el=document.createElement('div');el.className='citem inc';
+    el.innerHTML='<span class="w"></span><span class="m"></span><button class="del" type="button" aria-label="Supprimer">'+ICON_TRASH+'</button><span class="s"></span>';
+    el.querySelector('.w').textContent='CA '+(SRCS[x.src]||x.src);el.querySelector('.m').textContent='+ '+eur(x.amount);
+    el.querySelector('.s').textContent=dayShort(x.date)+(x.note?' · '+x.note:'');el.querySelector('.del').dataset.inc=x.id;box.appendChild(el)});
   fx.forEach(([k,v])=>{const el=document.createElement('div');el.className='citem';
     el.innerHTML='<span class="w"></span><span class="m"></span><span class="s">Charge fixe mensuelle</span>';
     el.querySelector('.w').textContent=CATS[k];el.querySelector('.m').textContent=eur(num(v));box.appendChild(el)});
@@ -938,21 +966,28 @@ function renderCharges(){
     el.innerHTML='<span class="w"></span><span class="m"></span><button class="del" type="button" aria-label="Supprimer">'+ICON_TRASH+'</button><span class="s"></span>';
     el.querySelector('.w').textContent=CATS[x.cat]||x.cat;el.querySelector('.m').textContent=eur(x.amount);
     el.querySelector('.s').textContent=dayShort(x.date)+(x.note?' · '+x.note:'');el.querySelector('.del').dataset.id=x.id;box.appendChild(el)});
-  if(!fx.length&&!list.length)box.innerHTML='<div class="empty-state">Aucune dépense en '+monthLabel(cMonthV)+'. Ajoutez votre premier plein ci-dessus.</div>';
+  if(!fx.length&&!list.length&&!inc.length)box.innerHTML='<div class="empty-state">Aucune dépense en '+monthLabel(cMonthV)+'. Ajoutez votre premier plein ci-dessus.</div>';
   const y=cMonthV.slice(0,4),last=+cMonthV.slice(5,7);const yb={essence:0,amende:0,assurance:0,pret:0};
   for(let i=1;i<=last;i++){const mm=monthCharges(y+'-'+pad(i));Object.keys(yb).forEach(k=>yb[k]+=mm.by[k])}
   $('hChgYear').textContent='Cumul '+y+' (janvier à '+MONTHS[last-1]+')';
   $('cYearTot').textContent=eur(Object.values(yb).reduce((a,b)=>a+b,0));
   $('cYear').innerHTML=barsHTML(yb);
+  let yca=0;for(let i=1;i<=last;i++)yca+=appsCA(y+'-'+pad(i)).reduce((a,x)=>a+x.amount,0);
+  if(yca){const r=document.createElement('p');r.className='totline';r.textContent='CA applis cumulé sur la période : '+eur(yca);$('cYear').appendChild(r)}
 }
 document.querySelectorAll('.cats button').forEach(b=>b.onclick=()=>{cCat=b.dataset.cat;renderCharges()});
 $('fxFrom').onchange=()=>{C().fixed.from=$('fxFrom').value||'';persist();renderCharges()};
+document.querySelectorAll('#caSrc button').forEach(b=>b.onclick=()=>{caSrc=b.dataset.src;renderCharges()});
+$('caAdd').onclick=()=>{const amt=num($('caAmt').value);if(!amt){toast('Indiquez le montant encaissé');$('caAmt').focus();return}
+  const date=$('caDate').value||dkey(new Date());C().income=C().income||[];
+  C().income.push({id:uid(),src:caSrc,amount:amt,date,note:$('caNote').value.trim()});
+  $('caAmt').value='';$('caNote').value='';cMonthV=date.slice(0,7);persist();renderCharges();toast('CA '+SRCS[caSrc]+' ajouté : '+eur(amt))};
 $('cMonth').onchange=()=>{if($('cMonth').value){cMonthV=$('cMonth').value;renderCharges()}};
 $('cAdd').onclick=()=>{const amt=num($('cAmt').value);if(!amt){toast('Indiquez le montant');$('cAmt').focus();return}
   const date=$('cDate').value||dkey(new Date());
   C().items.push({id:uid(),cat:cCat,amount:amt,date,note:$('cNote').value.trim()});
   $('cAmt').value='';$('cNote').value='';cMonthV=date.slice(0,7);persist();renderCharges();toast(CATS[cCat]+' ajouté : '+eur(amt))};
-$('cList').addEventListener('click',e=>{const b=e.target.closest('.del');if(!b)return;C().items=C().items.filter(x=>x.id!==b.dataset.id);persist();renderCharges();toast('Dépense supprimée')});
+$('cList').addEventListener('click',e=>{const b=e.target.closest('.del');if(!b)return;if(b.dataset.inc){C().income=(C().income||[]).filter(x=>x.id!==b.dataset.inc);persist();renderCharges();toast('Recette supprimée');return}C().items=C().items.filter(x=>x.id!==b.dataset.id);persist();renderCharges();toast('Dépense supprimée')});
 ['fxAss','fxPret'].forEach(id=>$(id).addEventListener('change',()=>{const v=$(id).value.trim();C().fixed[id==='fxAss'?'assurance':'pret']=v===''?'':num(v);if(!C().fixed.from)C().fixed.from=dkey(new Date()).slice(0,7);persist();renderCharges()}));
 setView(view);
 
